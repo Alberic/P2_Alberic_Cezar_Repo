@@ -6,25 +6,31 @@ import re
 
 def obtenir_page(url_page):
     page = requests.get(url_page)
-    assert page.ok, "Impossible d'obtenir la page"
-    return page
+    if page.ok:
+        return page
+    else:
+        return False
 
 
 def categorie_livre(page_a_parser):
     adresse_categorie = []
     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
     for categorie in page_parse.findAll(href=re.compile("category")):
+        base_adresse = page_a_parser.url
+        base_adresse= base_adresse.rstrip('index.html')
         href = categorie.parent.a['href']
-        adresse_categorie.append(page_a_parser.url + href)
+        adresse_categorie.append(base_adresse + href)
     return adresse_categorie
 
 def adresse_livres(page_a_parser):
     adresse_livre = []
     page_parse = BeautifulSoup(page_a_parser.text, "html.parser")
+    page_home_parse = urlparse(page_a_parser.url, 'http')
+    page_home = page_home_parse.scheme+'://'+page_home_parse.netloc+'/'+'catalogue/'
     livre = page_parse.findAll('h3')
     for title in livre:
-        href = title.a['href']
-        adresse_livre.append(page_a_parser.url + href)
+        href = str(title.a['href'])
+        adresse_livre.append(page_home + href.lstrip("/."))
     return adresse_livre
 
 def info_livre(page_a_parser):
@@ -51,16 +57,48 @@ def info_livre(page_a_parser):
     )
     print(extraction_info_title)
 
+def toute_les_pages(page_a_parser):
+     liste_des_pages=[page_a_parser.url]
+     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
+     p = 2
+     url_parse = urlparse(page_a_parser.url)
+     url_listed = url_parse.path.rsplit('/')
+     url_listed.pop()
 
-url = "https://books.toscrape.com/"
-url_livre = "https://books.toscrape.com/catalogue/its-only-the-himalayas_981/index.html"
+     while page_parse.find(class_='next') != None:
+         nextpage = str(url_parse.scheme)+'://'+str(url_parse.netloc)+'/'+str(url_listed[1])+'/'+str(url_listed[2])+'/'+str(url_listed[3])+'/'+str(url_listed[4])+'/'+'page-'+str(p)+'.html'
+         new_url = obtenir_page(nextpage)
 
-page = obtenir_page(url)
-livre = obtenir_page(url_livre)
+         if new_url != False:
+             page_parse = BeautifulSoup(new_url.content, "html.parser")
+             liste_des_pages.append(new_url.url)
+             p = p + 1
+     cat_resultat = [str(url_listed[4]), liste_des_pages]
+     return  cat_resultat
 
-adresses = adresse_livres(page)
-categorie = categorie_livre(page)
-datalivre = info_livre(livre)
-#print(page.status_code)
-#print(adresses)
-#print (categorie)
+
+url = obtenir_page("https://books.toscrape.com/index.html")
+list_categorie_file = open('liste_categorie.txt', 'a')
+
+liste_categorie = []
+for categories in categorie_livre(url):
+    liste_categorie.append(categories)
+
+liste_categorie.pop(0)
+
+index = 0
+liste_pages_par_categorie = []
+while index < len(liste_categorie):
+    pages_categorie = obtenir_page(liste_categorie[index])
+    print(toute_les_pages(pages_categorie))
+    index = index + 1
+
+
+
+list_categorie_file.writelines(liste_categorie)
+
+"""liste_pages_categorie = []
+for cat in liste_categorie:
+    fichier_csv = open(cat+'.csv','c')
+    url_cat = obtenir_page(cat)
+    print(toute_les_pages(url_cat))"""
