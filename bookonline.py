@@ -43,11 +43,15 @@ def adresse_livres(page_a_parser):
 
 # Produit une liste de toutes les infos concernant le livre dont l'adresse a été fourni en argument
 def info_livre(page_a_parser):
+    """
 
+    :param page_a_parser:
+    :return:
+    """
     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
     informations_tab = page_parse.findAll('td')
-    description_soup = page_parse.find(class_='sub-header')
-    rating_soup = page_parse.find("p", class_="star-rating")
+    description_soup = page_parse.find(class_= 'sub-header')
+    rating_soup = page_parse.find("p", class_= "star-rating")
     category_soup = page_parse.findAll('a')
     image_soup = page_parse.find("img")
     url_parse = urlparse(page_a_parser.url)
@@ -140,7 +144,18 @@ while index_cat < len(liste_categorie):
                 livre_a_traiter = obtenir_page(ce_livre)
                 livre_info = info_livre(livre_a_traiter)
                 url_image = livre_info[-1]
-                urllib.request.urlretrieve(url_image, livre_info[2]+'.jpg')
+                interdit = [':', '<', '>', '"', '/', '\\', '|', '?', '*']
+                for caractere in interdit:
+                    livre_info[2] = livre_info[2].replace(caractere,'_')
+                nom_image = livre_info[2]
+                print(len(nom_image))
+                if len(nom_image) > 100:
+                    print('TROP LONG')
+                    nom_image = nom_image[0:100]+'...'
+                nom_image = nom_image+'.jpg'
+
+                print('NOM IMAGE = :', nom_image)
+                urllib.request.urlretrieve(url_image, nom_image)
 
                 index_replace = 0
                 while index_replace < len(livre_info):
@@ -155,7 +170,7 @@ while index_cat < len(liste_categorie):
             index_page = index_page + 1
 
     # Fermer le fichier une fois toutes les informations collectées
-    fichier.close
+    fichier.close()
 
     # Passer à la catégorie suivante
     index_cat = index_cat + 1
