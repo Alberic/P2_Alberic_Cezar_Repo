@@ -12,12 +12,11 @@ Liste des fonctions :
 - toutes_les_pages(arg) : Produit une liste des adresses de toutes les pages d'une catégorie (adresse en argument)
 """
 
-# Réalise un GET de l'url en argument et retourne la page correspondante ou False s'il y a une erreur
 def obtenir_page(url_page):
     """
-
-    :param url_page:
-    :return:
+    Réalise un GET de l'url en argument et retourne la page correspondante ou False s'il y a une erreur
+    :param url_page: url au format string
+    :return: objet requests.Response de l'URL. En cas d'erreur, renvoie FALSE
     """
     page = requests.get(url_page)
     if page.ok:
@@ -27,12 +26,11 @@ def obtenir_page(url_page):
         return False
 
 
-# Produit une liste des adresses de toutes les catégories présentent sur la page passée en argument
 def categorie_livre(page_a_parser):
     """
-
-    :param page_a_parser:
-    :return:
+    Produit une liste des adresses de toutes les catégories présentent sur la page passée en argument
+    :param page_a_parser: objet requests.Response de l'URL de la homepage
+    :return: tableau des URL des catégories (premières pages) au format string
     """
     adresse_categorie = []
     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
@@ -44,12 +42,11 @@ def categorie_livre(page_a_parser):
     return adresse_categorie
 
 
-# Produit une liste des adresses de tous les livres présent sur la page passée en argument
 def adresse_livres(page_a_parser):
     """
-
-    :param page_a_parser:
-    :return:
+    Produit une liste des adresses de tous les livres présent sur la page passée en argument
+    :param page_a_parser: objet requests.Response d'une URL contenant des livres
+    :return: tableau d'URL de livres au format string
     """
     adresse_livre = []
     page_parse = BeautifulSoup(page_a_parser.text, "html.parser")
@@ -63,12 +60,11 @@ def adresse_livres(page_a_parser):
     return adresse_livre
 
 
-# Produit une liste de toutes les infos concernant le livre dont l'adresse a été fourni en argument
 def info_livre(page_a_parser):
     """
-
-    :param page_a_parser:
-    :return:
+    Produit une liste de toutes les infos concernant le livre dont l'adresse a été fourni en argument
+    :param page_a_parser: objet requests.Response d'une URL de page de présentation d'un livre
+    :return: dictionnaire de données concernant le livre
     """
     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
     informations_tab = page_parse.findAll('td')
@@ -94,12 +90,11 @@ def info_livre(page_a_parser):
     return extraction_info_title
 
 
-# Produit une liste des adresses de toutes les pages d'une catégorie dont l'adresse a été passé en argument
 def toutes_les_pages(page_a_parser):
     """
-
-    :param page_a_parser:
-    :return:
+    Produit une liste des adresses de toutes les pages d'une catégorie dont l'adresse a été passé en argument
+    :param page_a_parser: objet requests.Response de l'URL de la première page d'une catégorie
+    :return: tableau de toutes les URL concernant la catégorie visée
     """
     liste_des_pages = [page_a_parser.url]
     page_parse = BeautifulSoup(page_a_parser.content, "html.parser")
@@ -121,13 +116,12 @@ def toutes_les_pages(page_a_parser):
     cat_resultat = [str(url_listed[4]), liste_des_pages]
     return cat_resultat
 
-# Nettoie un texte en remplaçant les caractère non souhaités par des tirets
 def clean_texte(texte,liste_caractere):
     """
-    
-    :param texte: 
-    :param liste_caractere: 
-    :return: 
+    Nettoie un texte en remplaçant les caractère non souhaités par des tirets
+    :param texte: chaîne de caractère à nettoyer
+    :param liste_caractere: liste des caractère à remplacer
+    :return: chaîne de caractère modifiée
     """
     for caracteres in liste_caractere:
         texte = texte.replace(caracteres,'_')
